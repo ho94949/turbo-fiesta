@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class RigidBodySimulation : MonoBehaviour
@@ -16,20 +18,76 @@ public class RigidBodySimulation : MonoBehaviour
     private float linearDampingCoeffX = 0.25f; //friction term
     private float angularDampingCoeff = 2.5f;
 
-    private BoxCollider2D c2d;
-
     private Vector2 linearVelocity;
     private float angularVelocity;
     private float height;
     private float width;
 
+    private Vector3 initialPosition;
+    private Quaternion initialRotation;
+
+    public float ColliderWidth;
+    public float ColliderHeight;
+    public bool IsStatic;
+    public bool IsDragable;
+
+    public bool IsEndDomino;
+
+    private bool underSimulation;
+
+    private TargetCube tc;
+    private bool dragging;
+    private Vector3 prevMousePosition;
+
+    // For less memory allocation/garbage collecting
+    private Vector2[] pointArray;
+
+    public void StartSimulation()
+    {
+        if (underSimulation == true)
+            return;
+        underSimulation = true;
+
+        initialPosition = this.transform.position;
+        initialRotation = this.transform.rotation;
+    }
+    public void StopSimulation()
+    {
+        underSimulation = false;
+    }
+    public void ResetSimulation()
+    {
+        underSimulation = false;
+        this.transform.position = initialPosition;
+        this.transform.rotation = initialRotation;
+
+        linearVelocity = Vector2.zero;
+        angularVelocity = 0;
+    }
+
+    public Vector2[] ToPointArray()
+    {
+        if (pointArray == null)
+            pointArray = new Vector2[4];
+
+        float height = ColliderHeight * transform.lossyScale.y;
+        float width = ColliderWidth * transform.lossyScale.x;
+
+        pointArray[0] = transform.rotation * new Vector2(width / 2, height / 2) + transform.position;
+        pointArray[1] = transform.rotation * new Vector2(-width / 2, height / 2) + transform.position;
+        pointArray[2] = transform.rotation * new Vector2(-width / 2, -height / 2) + transform.position;
+        pointArray[3] = transform.rotation * new Vector2(width / 2, -height / 2) + transform.position;
+
+        return pointArray;
+    }
+
     // Use this for initialization
     void Start()
     {
-        c2d = GetComponent<BoxCollider2D>();
+        height = ColliderHeight * transform.lossyScale.y;
+        width = ColliderWidth * transform.lossyScale.x;
 
-        height = c2d.size.y * transform.lossyScale.y;
-        width = c2d.size.x * transform.lossyScale.x;
+        tc = GetComponent<TargetCube>();
 
         inertia = mass / 12.0f * (height * height + width * width);
         gravityVector = new Vector2(0, -gravityConstant);
@@ -37,9 +95,38 @@ public class RigidBodySimulation : MonoBehaviour
         angularVelocity = 0.0f;
     }
 
-    // Update is called once per frame
+    private void Update()
+    {
+        if (underSimulation == false && IsDragable == true)
+        {
+            if (dragging == true)
+            {
+                Vector3 dpos = Camera.main.ScreenToWorldPoint(Input.mousePosition) - prevMousePosition;
+                this.transform.position += new Vector3(dpos.x, dpos.y);
+                prevMousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            }
+
+            if (Input.GetMouseButtonDown(0) == true)
+            {
+                Debug.Log("Click");
+                Vector2 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                
+                if (CustomPhysics.InsidePolygon(this.ToPointArray(), mouseWorldPosition))
+                {
+                    Debug.Log("Under drag!!");
+                    dragging = true;
+                    prevMousePosition = mouseWorldPosition;
+                }
+            }
+            if (Input.GetMouseButtonUp(0) == true)
+                dragging = false;
+        }
+    }
     void FixedUpdate()
     {
+        if (underSimulation == false)
+            return;
+
         float dt = Time.fixedDeltaTime;
 
         Vector2 worldForce = Vector2.zero;
@@ -52,20 +139,26 @@ public class RigidBodySimulation : MonoBehaviour
         //penalty method
 
         float degreeAngle = transform.rotation.eulerAngles.z;
-        Collider2D[] overlapped = Physics2D.OverlapBoxAll(transform.position, new Vector2(width, height), degreeAngle);
+        RigidBodySimulation[] simArray = GameObject.FindObjectsOfType<RigidBodySimulation>();
+        // Make some overlapboxall
 
         bool collided = false;
-        foreach (Collider2D c in overlapped)
+        foreach (RigidBodySimulation sim in simArray)
         {
-            if (c == c2d) continue;
+            if (sim == this) continue;
 
             float depth;
             Vector2 deepestPoint;
             Vector2 direction;
 
-            GetPenetraionDepth(c2d, c, out depth, out deepestPoint, out direction);
+            CustomPhysics.GetPenetrationDepth(
+               this.ToPointArray(), sim.ToPointArray(),
+               out depth, out deepestPoint, out direction);
             if (depth != 0)
             {
+                if (tc != null && sim.IsEndDomino == true)
+                    tc.Collided();
+
                 Vector2 f = penaltyConstant * direction * depth;
                 worldForce += f;
 
@@ -82,9 +175,15 @@ public class RigidBodySimulation : MonoBehaviour
                     + directionwiseVelocity * (1 - linearDampingCoeffY * dt); //normal
             }
 
-            GetPenetraionDepth(c, c2d, out depth, out deepestPoint, out direction);
+            /* DUPLICATED...
+            CustomPhysics.GetPenetrationDepth(
+                sim.ToPointArray(), this.ToPointArray(),
+                out depth, out deepestPoint, out direction);
             if (depth != 0)
             {
+                if (tc != null && sim.IsEndDomino)
+                    tc.Collided();
+
                 Vector2 f = -penaltyConstant * direction * depth;
                 worldForce += f;
 
@@ -100,6 +199,7 @@ public class RigidBodySimulation : MonoBehaviour
                     (linearVelocity - directionwiseVelocity) * (1 - linearDampingCoeffX * dt) //perpendicular to normal
                     + directionwiseVelocity * (1 - linearDampingCoeffY * dt); //normal
             }
+            */
         }
 
         if (collided == true)
@@ -114,70 +214,11 @@ public class RigidBodySimulation : MonoBehaviour
 
         linearVelocity *= (1 - linearDrag * dt);
         angularVelocity *= (1 - angularDrag * dt);
-        
-        transform.Translate(transform.InverseTransformDirection(linearVelocity) * dt);
-        transform.Rotate(0, 0, angularVelocity * dt * 180 / Mathf.PI);
-    }
 
-    static float triangleHeight(Vector2 x, Vector2 y, Vector2 z)
-    {
-        x -= z;
-        y -= z;
-        float triangleArea = x.x * y.y - x.y * y.x;
-        float hyp = (x - y).magnitude;
-        return Mathf.Abs(triangleArea / hyp);
-    }
-
-    public static void GetPenetraionDepth(Collider2D lhs, Collider2D opposite, out float depth, out Vector2 deepestPoint, out Vector2 direction)
-    {
-        depth = 0;
-        deepestPoint = Vector2.zero;
-        direction = Vector2.zero;
-
-        Vector2 pA, pB, pC, pD;
-        float width = lhs.GetComponent<BoxCollider2D>().size.x * lhs.transform.lossyScale.x;
-        float height = lhs.GetComponent<BoxCollider2D>().size.y * lhs.transform.lossyScale.y;
-
-        pA = lhs.transform.position + lhs.transform.rotation * new Vector3(width / 2, height / 2);
-        pB = lhs.transform.position + lhs.transform.rotation * new Vector3(-width / 2, height / 2);
-        pC = lhs.transform.position + lhs.transform.rotation * new Vector3(-width / 2, -height / 2);
-        pD = lhs.transform.position + lhs.transform.rotation * new Vector3(width / 2, -height / 2);
-
-        Vector2 cA, cB, cC, cD;
-        float oppositeWidth = opposite.GetComponent<BoxCollider2D>().size.x * opposite.transform.lossyScale.x;
-        float oppositeHeight = opposite.GetComponent<BoxCollider2D>().size.y * opposite.transform.lossyScale.y;
-        cA = opposite.transform.position + opposite.transform.rotation * new Vector3(oppositeWidth / 2, oppositeHeight / 2);
-        cB = opposite.transform.position + opposite.transform.rotation * new Vector3(-oppositeWidth / 2, oppositeHeight / 2);
-        cC = opposite.transform.position + opposite.transform.rotation * new Vector3(-oppositeWidth / 2, -oppositeHeight / 2);
-        cD = opposite.transform.position + opposite.transform.rotation * new Vector3(oppositeWidth / 2, -oppositeHeight / 2);
-
-        Vector2[] vertexArray = new Vector2[] { pA, pB, pC, pD };
-        Vector2[] oppositeVertexArray = new Vector2[] { cA, cB, cC, cD, cA };
-        Vector2[] Direction = new Vector2[] { new Vector2(0, 1), new Vector2(-1, 0), new Vector2(0, -1), new Vector2(1, 0) };
-        foreach (Vector2 v in vertexArray)
+        if (IsStatic == false)
         {
-            if (Physics2D.RaycastAll(v, Vector2.zero).ToList().Exists(_ => _.collider == opposite))
-            {
-                float vdepth = Mathf.Infinity;
-                Vector2 vdirection = new Vector2();
-                for (int i = 0; i < 4; ++i)
-                {
-                    Vector2 cdirection = Direction[i];
-                    float cdepth = triangleHeight(oppositeVertexArray[i], oppositeVertexArray[i + 1], v);
-                    if (vdepth > cdepth)
-                    {
-                        vdepth = cdepth;
-                        vdirection = cdirection;
-                    }
-                }
-
-                if (depth < vdepth)
-                {
-                    depth = vdepth;
-                    deepestPoint = v;
-                    direction = opposite.transform.rotation * vdirection;
-                }
-            }
+            transform.Translate(transform.InverseTransformDirection(linearVelocity) * dt);
+            transform.Rotate(0, 0, angularVelocity * dt * 180 / Mathf.PI);
         }
     }
 }
