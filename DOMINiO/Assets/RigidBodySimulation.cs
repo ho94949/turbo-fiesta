@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class RigidBodySimulation : MonoBehaviour
 {
@@ -18,8 +15,8 @@ public class RigidBodySimulation : MonoBehaviour
     private float linearDampingCoeffX = 0.25f; //0.25f; //friction term
     private float angularDampingCoeff = 0.0005f;
 
-    private Vector2 linearVelocity;
-    private float angularVelocity;
+    public Vector2 LinearVelocity { get; private set; }
+    public float AngularVelocity { get; private set; }
     private float height;
     private float width;
 
@@ -33,8 +30,9 @@ public class RigidBodySimulation : MonoBehaviour
 
     public bool IsEndDomino;
 
+    private bool SimulationHalted = false;
 
-    private bool underSimulation;
+    public bool UnderSimulation;
 
     private TargetCube tc;
     private bool dragging;
@@ -43,27 +41,35 @@ public class RigidBodySimulation : MonoBehaviour
     // For less memory allocation/garbage collecting
     private Vector2[] pointArray;
 
+    private void Awake()
+    {
+        initialPosition = transform.position;
+        initialRotation = transform.rotation;
+    }
+
     public void StartSimulation()
     {
-        if (underSimulation == true)
+        if (UnderSimulation == true)
             return;
-        underSimulation = true;
-
+        UnderSimulation = true;
+        SimulationHalted = false;
         initialPosition = this.transform.position;
         initialRotation = this.transform.rotation;
     }
     public void StopSimulation()
     {
-        underSimulation = false;
+        SimulationHalted = true;
+        UnderSimulation = false;
     }
     public void ResetSimulation()
     {
-        underSimulation = false;
+        UnderSimulation = false;
+        SimulationHalted = false;
         this.transform.position = initialPosition;
         this.transform.rotation = initialRotation;
 
-        linearVelocity = Vector2.zero;
-        angularVelocity = 0;
+        LinearVelocity = Vector2.zero;
+        AngularVelocity = 0;
     }
 
     public Vector2[] ToPointArray()
@@ -92,13 +98,14 @@ public class RigidBodySimulation : MonoBehaviour
 
         inertia = mass / 12.0f * (height * height + width * width);
         gravityVector = new Vector2(0, -gravityConstant);
-        linearVelocity = new Vector2(0, 0);
-        angularVelocity = 0.0f;
+        LinearVelocity = new Vector2(0, 0);
+        AngularVelocity = 0.0f;
     }
 
     private void Update()
     {
-        if (underSimulation == false && IsDragable == true)
+        if (SimulationHalted) return;
+        if (UnderSimulation == false && IsDragable == true)
         {
             if (dragging == true)
             {
@@ -109,12 +116,10 @@ public class RigidBodySimulation : MonoBehaviour
 
             if (Input.GetMouseButtonDown(0) == true)
             {
-                Debug.Log("Click");
                 Vector2 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
                 if (CustomPhysics.InsidePolygon(this.ToPointArray(), mouseWorldPosition))
                 {
-                    Debug.Log("Under drag!!");
                     dragging = true;
                     prevMousePosition = mouseWorldPosition;
                 }
@@ -125,8 +130,13 @@ public class RigidBodySimulation : MonoBehaviour
     }
     void FixedUpdate()
     {
-        if (underSimulation == false)
+        if (SimulationHalted) return;
+        if (!UnderSimulation && dragging)
             return;
+        if (!UnderSimulation && !IsDragable)
+            return;
+        //if (underSimulation == false)
+        //    return;
 
         float dt = Time.fixedDeltaTime;
 
@@ -160,47 +170,63 @@ public class RigidBodySimulation : MonoBehaviour
                out depth, out deepestPoint, out direction);
             if (depth != 0)
             {
+                if (!UnderSimulation)
+                {
+                    if (sim.dragging) return;
+                    LinearVelocity = Vector2.zero;
+                    AngularVelocity = 0;
+                    sim.LinearVelocity = Vector2.zero;
+                    sim.AngularVelocity = 0;
+
+                    transform.Translate(transform.InverseTransformDirection((depth) * direction));
+                    return;
+                }
+                else
+                {
+                    if (tc != null && sim.IsEndDomino == true)
+                        tc.Collided();
+
+                    Vector2 f = penaltyConstant * direction * depth;
+                    worldForce += f;
+
+                    Vector2 r = deepestPoint - (Vector2)transform.position;
+                    if (Mathf.Abs(worldTorque) > 0.01 || Mathf.Abs(r.x * f.y - r.y * f.x) > 0.01)
+                        worldTorque += r.x * f.y - r.y * f.x;
+
+                    collided = true;
+
+                    float dotproduct = Vector2.Dot(LinearVelocity, direction);
+                    Vector2 directionwiseVelocity = dotproduct * direction;
+
+                    LinearVelocity =
+                        (LinearVelocity - directionwiseVelocity) * (1 - linearDampingCoeffX * dt) //perpendicular to normal
+                        + directionwiseVelocity * (1 - linearDampingCoeffY * dt); //normal
+                }
                 //CustomPhysics.DebugVector2(deepestPoint);
 
-                if (tc != null && sim.IsEndDomino == true)
-                    tc.Collided();
-
-                Vector2 f = penaltyConstant * direction * depth;
-                worldForce += f;
-
-                Vector2 r = deepestPoint - (Vector2)transform.position;
-                if (Mathf.Abs(r.x * f.y - r.y * f.x) > 0.003)
-                    worldTorque += r.x * f.y - r.y * f.x;
-
-                collided = true;
-
-                float dotproduct = Vector2.Dot(linearVelocity, direction);
-                Vector2 directionwiseVelocity = dotproduct * direction;
-
-                linearVelocity =
-                    (linearVelocity - directionwiseVelocity) * (1 - linearDampingCoeffX * dt) //perpendicular to normal
-                    + directionwiseVelocity * (1 - linearDampingCoeffY * dt); //normal
             }
 
         }
 
+
         if (collided == true)
         {
-            angularVelocity *= (1 - angularDampingCoeff * dt);
+            AngularVelocity *= (1 - angularDampingCoeff * dt);
         }
 
-        linearVelocity += dt * angularVelocity * new Vector2(linearVelocity.y, -linearVelocity.x);
-        linearVelocity += dt * worldForce / mass; //normal term
+        LinearVelocity += dt * AngularVelocity * new Vector2(LinearVelocity.y, -LinearVelocity.x);
+        LinearVelocity += dt * worldForce / mass; //normal term
 
-        angularVelocity += dt * worldTorque / inertia;
+        AngularVelocity += dt * worldTorque / inertia;
 
-        linearVelocity *= (1 - linearDrag * dt);
-        angularVelocity *= (1 - angularDrag * dt);
-
+        LinearVelocity *= (1 - linearDrag * dt);
+        AngularVelocity *= (1 - angularDrag * dt);
+        if (!UnderSimulation)
+            AngularVelocity = 0;
         if (IsStatic == false)
         {
-            transform.Translate(transform.InverseTransformDirection(linearVelocity) * dt);
-            transform.Rotate(0, 0, angularVelocity * dt * 180 / Mathf.PI);
+            transform.Translate(transform.InverseTransformDirection(LinearVelocity) * dt);
+            transform.Rotate(0, 0, AngularVelocity * dt * 180 / Mathf.PI);
         }
     }
 }

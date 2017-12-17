@@ -39,7 +39,7 @@ public static class CustomPhysics
     }
     public static bool InsidePolygon(Vector2[] a, Vector2 p)
     {
-        const float eps = 1e-6f;
+        const float eps = 1e-9f;
         float integratedRotationField = 0.0f;
         for (int i = 0; i < a.Length; ++i)
         {
