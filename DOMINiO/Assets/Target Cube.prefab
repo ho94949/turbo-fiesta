@@ -37,7 +37,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1157112488613930}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.07, y: -2.51, z: -0.06805869}
+  m_LocalPosition: {x: 3.55, y: -2.54, z: -0.06805869}
   m_LocalScale: {x: 5, y: 5, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -76,9 +76,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac86be8199f9def47b1864fb7daed6ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ColliderWidth: 0.16
-  ColliderHeight: 0.16
+  ColliderWidth: 0.13
+  ColliderHeight: 0.13
   IsStatic: 1
+  IsDragable: 0
   IsEndDomino: 0
 --- !u!212 &212278848546737716
 SpriteRenderer:

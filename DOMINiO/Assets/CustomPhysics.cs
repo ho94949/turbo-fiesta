@@ -5,7 +5,18 @@ using UnityEngine;
 
 public static class CustomPhysics
 {
-
+    public static void DebugVector2(IEnumerable<Vector2> a)
+    {
+        return;
+        Debug.Log("Start Debug");
+        foreach (Vector2 x in a)
+            Debug.Log(String.Format("({0}, {1})", x.x, x.y));
+        Debug.Log("End Debug");
+    }
+    public static void DebugVector2(Vector2 a)
+    {
+        Debug.Log(String.Format("Single: ({0}, {1})", a.x, a.y));
+    }
     private static bool LineIntersection(Vector2 v1, Vector2 v2, Vector2 v3, Vector2 v4, out Vector2 res)
     {
         const float eps = 1e-3f;
@@ -117,6 +128,7 @@ public static class CustomPhysics
         //Debug.Log(A[0].ToString() + A[1].ToString() + A[2].ToString() + A[3].ToString());
         //Debug.Log(B[0].ToString() + B[1].ToString() + B[2].ToString() + B[3].ToString());
         //Debug.Assert(IntersectionPolygon.Count != 0);
+        DebugVector2(IntersectionPolygon);
         return CalculateCoMofPolygon(IntersectionPolygon);
     }
     public static void GetPenetrationDepth(Vector2[] A, Vector2[] B, out float depth, out Vector2 collisionCoM, out Vector2 direction)

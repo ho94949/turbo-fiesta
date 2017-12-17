@@ -14,9 +14,9 @@ public class RigidBodySimulation : MonoBehaviour
     private float linearDrag = 0.5f;
     private float angularDrag = 0.5f;
 
-    private float linearDampingCoeffY = 35f; //damping term
-    private float linearDampingCoeffX = 0.25f; //friction term
-    private float angularDampingCoeff = 2.5f;
+    private float linearDampingCoeffY = 15f; //damping term
+    private float linearDampingCoeffX = 0.25f; //0.25f; //friction term
+    private float angularDampingCoeff = 0.0005f;
 
     private Vector2 linearVelocity;
     private float angularVelocity;
@@ -32,6 +32,7 @@ public class RigidBodySimulation : MonoBehaviour
     public bool IsDragable;
 
     public bool IsEndDomino;
+
 
     private bool underSimulation;
 
@@ -110,7 +111,7 @@ public class RigidBodySimulation : MonoBehaviour
             {
                 Debug.Log("Click");
                 Vector2 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                
+
                 if (CustomPhysics.InsidePolygon(this.ToPointArray(), mouseWorldPosition))
                 {
                     Debug.Log("Under drag!!");
@@ -146,6 +147,9 @@ public class RigidBodySimulation : MonoBehaviour
         foreach (RigidBodySimulation sim in simArray)
         {
             if (sim == this) continue;
+            if (this.IsEndDomino == false && sim.gameObject.GetComponent<TargetCube>() != null)
+                continue;
+
 
             float depth;
             Vector2 deepestPoint;
@@ -156,6 +160,8 @@ public class RigidBodySimulation : MonoBehaviour
                out depth, out deepestPoint, out direction);
             if (depth != 0)
             {
+                //CustomPhysics.DebugVector2(deepestPoint);
+
                 if (tc != null && sim.IsEndDomino == true)
                     tc.Collided();
 
@@ -163,7 +169,8 @@ public class RigidBodySimulation : MonoBehaviour
                 worldForce += f;
 
                 Vector2 r = deepestPoint - (Vector2)transform.position;
-                worldTorque += r.x * f.y - r.y * f.x;
+                if (Mathf.Abs(r.x * f.y - r.y * f.x) > 0.003)
+                    worldTorque += r.x * f.y - r.y * f.x;
 
                 collided = true;
 
@@ -175,31 +182,6 @@ public class RigidBodySimulation : MonoBehaviour
                     + directionwiseVelocity * (1 - linearDampingCoeffY * dt); //normal
             }
 
-            /* DUPLICATED...
-            CustomPhysics.GetPenetrationDepth(
-                sim.ToPointArray(), this.ToPointArray(),
-                out depth, out deepestPoint, out direction);
-            if (depth != 0)
-            {
-                if (tc != null && sim.IsEndDomino)
-                    tc.Collided();
-
-                Vector2 f = -penaltyConstant * direction * depth;
-                worldForce += f;
-
-                Vector2 r = deepestPoint - (Vector2)transform.position;
-                worldTorque += r.x * f.y - r.y * f.x;
-
-                collided = true;
-
-                float dotproduct = Vector2.Dot(linearVelocity, -direction);
-                Vector2 directionwiseVelocity = dotproduct * -direction;
-
-                linearVelocity =
-                    (linearVelocity - directionwiseVelocity) * (1 - linearDampingCoeffX * dt) //perpendicular to normal
-                    + directionwiseVelocity * (1 - linearDampingCoeffY * dt); //normal
-            }
-            */
         }
 
         if (collided == true)
