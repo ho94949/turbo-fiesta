@@ -121,11 +121,11 @@ Prefab:
     m_Modifications:
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.x
-      value: -4.43
+      value: -6.34
       objectReference: {fileID: 0}
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 1.75
+      value: -1.94
       objectReference: {fileID: 0}
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.z
@@ -255,11 +255,11 @@ Prefab:
     m_Modifications:
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.x
-      value: -3.1
+      value: -7.06
       objectReference: {fileID: 0}
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 1.8
+      value: -1.87
       objectReference: {fileID: 0}
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.z
@@ -309,11 +309,11 @@ Prefab:
     m_Modifications:
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.x
-      value: -5.63
+      value: -7.67
       objectReference: {fileID: 0}
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 1.76
+      value: -1.83
       objectReference: {fileID: 0}
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.z
@@ -672,6 +672,7 @@ MonoBehaviour:
   IsStatic: 1
   IsDragable: 0
   IsEndDomino: 0
+  UnderSimulation: 0
 --- !u!212 &1624363868
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -784,11 +785,11 @@ Prefab:
     m_Modifications:
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.x
-      value: -0.31
+      value: -5.67
       objectReference: {fileID: 0}
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.y
-      value: -1.822
+      value: -1.85
       objectReference: {fileID: 0}
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.z
@@ -858,6 +859,7 @@ MonoBehaviour:
   IsStatic: 1
   IsDragable: 0
   IsEndDomino: 0
+  UnderSimulation: 0
 --- !u!212 &1820028535
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -948,6 +950,7 @@ MonoBehaviour:
   IsStatic: 1
   IsDragable: 0
   IsEndDomino: 0
+  UnderSimulation: 0
 --- !u!212 &1974626666
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1038,6 +1041,7 @@ MonoBehaviour:
   IsStatic: 1
   IsDragable: 0
   IsEndDomino: 0
+  UnderSimulation: 0
 --- !u!212 &2055366814
 SpriteRenderer:
   m_ObjectHideFlags: 0

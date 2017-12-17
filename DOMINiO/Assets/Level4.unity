@@ -243,11 +243,11 @@ Prefab:
     m_Modifications:
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.x
-      value: -3.58
+      value: 5.76
       objectReference: {fileID: 0}
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 1.84
+      value: -1.72
       objectReference: {fileID: 0}
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.z
@@ -297,11 +297,11 @@ Prefab:
     m_Modifications:
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.x
-      value: -5.63
+      value: 6.75
       objectReference: {fileID: 0}
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 1.76
+      value: -1.69
       objectReference: {fileID: 0}
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalPosition.z
@@ -325,7 +325,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_RootOrder
-      value: 7
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 4789953370417756, guid: 76c49f5233f42cd468f8c9c5d9c2b10c, type: 2}
       propertyPath: m_LocalScale.x
@@ -564,6 +564,7 @@ MonoBehaviour:
   IsStatic: 1
   IsDragable: 0
   IsEndDomino: 0
+  UnderSimulation: 0
 --- !u!212 &1624363868
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -619,7 +620,7 @@ Transform:
   m_LocalScale: {x: 1.5575399, y: 0.70913196, z: 0.5767424}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1683348649
 Prefab:
@@ -700,6 +701,7 @@ MonoBehaviour:
   IsStatic: 1
   IsDragable: 0
   IsEndDomino: 0
+  UnderSimulation: 0
 --- !u!212 &1974626666
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -755,7 +757,7 @@ Transform:
   m_LocalScale: {x: 7.0283985, y: 0.70913196, z: 0.5767424}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 11
+  m_RootOrder: 12
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2055366812
 GameObject:
@@ -790,6 +792,7 @@ MonoBehaviour:
   IsStatic: 1
   IsDragable: 0
   IsEndDomino: 0
+  UnderSimulation: 0
 --- !u!212 &2055366814
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -845,7 +848,7 @@ Transform:
   m_LocalScale: {x: 1.6145382, y: 0.1644319, z: 0.1337337}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2105576038
 Prefab:
